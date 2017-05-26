@@ -1,53 +1,86 @@
 package it.unibo.lam.roadsosecurity;
 
-import android.content.res.AssetManager;
+import android.graphics.Color;
+import android.location.Location;
 import android.os.AsyncTask;
-import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
+import android.support.design.widget.FloatingActionButton;
+import android.support.design.widget.Snackbar;
+import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
-import android.webkit.HttpAuthHandler;
+import android.view.View;
 import android.widget.Toast;
 
-import com.google.android.gms.common.api.Api;
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.location.LocationListener;
+import com.google.android.gms.location.LocationRequest;
+import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
+import com.google.android.gms.maps.model.Circle;
+import com.google.android.gms.maps.model.CircleOptions;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.BufferedInputStream;
-import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.net.URLConnection;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 
 import static com.google.android.gms.internal.zzt.TAG;
+import static it.unibo.lam.roadsosecurity.R.id.map;
 
-public class AnomalyActivity extends FragmentActivity implements OnMapReadyCallback {
+public class AnomalyActivity extends AppCompatActivity implements
+        GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener,
+        LocationListener,
+        OnMapReadyCallback {
 
     private GoogleMap mMap;
-    List<Anomaly> anomalyList;
+    private List<Anomaly> anomalyList;
+    private LocationRequest mLocationRequest;
+    private GoogleApiClient mGoogleApiClient;
+    private LatLng latLng;
+    private SupportMapFragment mapFragment;
+    private Marker mCurrLocation;
+    private Circle mCircle;
+    private FloatingActionButton fab;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_anomaly);
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
-        SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
-                .findFragmentById(R.id.map);
+        mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
+
+        fab = (FloatingActionButton) findViewById(R.id.imageButton);
+        fab.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if(latLng != null)
+                {
+                    anomalyList.add(new Anomaly(latLng.latitude,latLng.longitude));
+                    Snackbar.make(view, "Aggiunta una nuova anomalia", Snackbar.LENGTH_LONG)
+                            .setAction("Action", null).show();
+
+                    mMap.clear();
+
+                    addAnomaliesOnMap();
+                    drawMarkerWithCircle(latLng);
+
+                }
+            }
+        });
 
         anomalyList = new ArrayList<>();
         this.getAnomalyList();
@@ -55,30 +88,45 @@ public class AnomalyActivity extends FragmentActivity implements OnMapReadyCallb
         //new GetAnomalies().execute();
     }
 
-
-    /**
-     * Manipulates the map once available.
-     * This callback is triggered when the map is ready to be used.
-     * This is where we can add markers or lines, add listeners or move the camera. In this case,
-     * we just add a marker near Sydney, Australia.
-     * If Google Play services is not installed on the device, the user will be prompted to install
-     * it inside the SupportMapFragment. This method will only be triggered once the user has
-     * installed Google Play services and returned to the app.
-     */
     @Override
     public void onMapReady(GoogleMap googleMap) {
+
         mMap = googleMap;
+        // Changing map type
+        mMap.setMapType(GoogleMap.MAP_TYPE_NORMAL);
 
-        // Add a marker in Sydney and move the camera
-        List<LatLng>a = new LinkedList<>();
+        // Showing / hiding your current location
+        mMap.setMyLocationEnabled(true);
 
-        LatLng sydney = new LatLng(-34, 151);
+        // Enable / Disable zooming controls
+        //mMap.getUiSettings().setZoomControlsEnabled(true);
 
+        // Enable / Disable my location button
+        mMap.getUiSettings().setMyLocationButtonEnabled(true);
+
+        // Enable / Disable Compass icon
+        mMap.getUiSettings().setCompassEnabled(true);
+
+        // Enable / Disable Rotate gesture
+        mMap.getUiSettings().setRotateGesturesEnabled(true);
+
+        // Enable / Disable zooming functionality
+        mMap.getUiSettings().setZoomGesturesEnabled(true);
+
+        mMap.setMyLocationEnabled(true);
+
+        buildGoogleApiClient();
+
+        mGoogleApiClient.connect();
+
+        addAnomaliesOnMap();
+    }
+
+    public void addAnomaliesOnMap()
+    {
         for (Anomaly anomaly: anomalyList) {
-            mMap.addMarker(new MarkerOptions().position(new LatLng(anomaly.getLatitude(),anomaly.getLongitude())).title(" Probabilità del" + anomaly.getTrust()));
+            mMap.addMarker(new MarkerOptions().position(new LatLng(anomaly.getLatitude(),anomaly.getLongitude())).title("Anomalia al " + anomaly.getTrust() + "%"));
         }
-        mMap.addMarker(new MarkerOptions().position(sydney).title("Marker in Sydney"));
-        mMap.moveCamera(CameraUpdateFactory.newLatLng(sydney));
     }
 
     public String loadJSONFromAsset() {
@@ -125,6 +173,122 @@ public class AnomalyActivity extends FragmentActivity implements OnMapReadyCallb
         }
     }
 
+    @Override
+    public void onPause() {
+        super.onPause();
+
+        if (mGoogleApiClient != null) {
+            LocationServices.FusedLocationApi.removeLocationUpdates(mGoogleApiClient, this);
+        }
+    }
+
+
+    protected synchronized void buildGoogleApiClient() {
+        Toast.makeText(this, "buildGoogleApiClient", Toast.LENGTH_SHORT).show();
+        mGoogleApiClient = new GoogleApiClient.Builder(this)
+                .addConnectionCallbacks(this)
+                .addOnConnectionFailedListener(this)
+                .addApi(LocationServices.API)
+                .build();
+    }
+
+    private void drawMarkerWithCircle(LatLng position){
+
+        if(mCircle != null)  mCircle.remove();
+
+        double radiusInMeters = 20.0;
+        int strokeColor = 0xffff0000; //red outline
+        int shadeColor = 0x44ff0000; //opaque red fill
+
+        CircleOptions circleOptions = new CircleOptions().center(position).radius(radiusInMeters).fillColor(shadeColor).strokeColor(strokeColor).strokeWidth(8);
+        mCircle = mMap.addCircle(circleOptions);
+
+        //MarkerOptions markerOptions = new MarkerOptions().position(position);
+        //mCurrLocation = mMap.addMarker(markerOptions);
+    }
+
+    @Override
+    public void onConnected(Bundle bundle) {
+        Toast.makeText(this, "onConnected", Toast.LENGTH_SHORT).show();
+        Location mLastLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
+        if (mLastLocation != null) {
+            //place marker at current position
+            //mMap.clear();
+            latLng = new LatLng(mLastLocation.getLatitude(), mLastLocation.getLongitude());
+            drawMarkerWithCircle(latLng);
+            mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, 16.0f));
+
+            //MarkerOptions markerOptions = new MarkerOptions();
+            //markerOptions.position(latLng);
+            //markerOptions.title("Current Position");
+            //markerOptions.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_MAGENTA));
+            //mCurrLocation = mMap.addMarker(markerOptions);
+        }
+
+        mLocationRequest = new LocationRequest();
+        mLocationRequest.setInterval(5000); //5 seconds
+        mLocationRequest.setFastestInterval(3000); //3 seconds
+        mLocationRequest.setPriority(LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY);
+        mLocationRequest.setSmallestDisplacement(0.1F); //1/10 meter
+
+        LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient, mLocationRequest, this);
+    }
+
+    @Override
+    public void onConnectionSuspended(int i) {
+        Toast.makeText(this,"onConnectionSuspended",Toast.LENGTH_SHORT).show();
+    }
+
+    @Override
+    public void onConnectionFailed(ConnectionResult connectionResult) {
+        Toast.makeText(this,"onConnectionFailed",Toast.LENGTH_SHORT).show();
+    }
+
+    @Override
+    public void onLocationChanged(Location location) {
+        Toast.makeText(this, "Location Changed", Toast.LENGTH_SHORT).show();
+        latLng = new LatLng(location.getLatitude(), location.getLongitude());
+
+        drawMarkerWithCircle(latLng);
+
+        for (Anomaly anomaly : anomalyList) {
+
+            float[] distance = new float[2];
+
+            Location.distanceBetween(anomaly.getLatitude(), anomaly.getLongitude(),
+                    mCircle.getCenter().latitude, mCircle.getCenter().longitude, distance);
+
+            if (distance[0] > mCircle.getRadius()) {
+                if(anomaly.getNotified()) anomaly.setNotified(false);
+                //Toast.makeText(getBaseContext(), "Outside, distance from center: " + distance[0] + " radius: " + mCircle.getRadius(), Toast.LENGTH_LONG).show();
+            } else {
+                if(!anomaly.getNotified()) {
+                    Toast.makeText(getBaseContext(), "Attenzione anomalia nelle vicinanze. (" + distance[0] + ")", Toast.LENGTH_LONG).show();
+                    anomaly.setNotified(true);
+                }
+            }
+        }
+
+        //mMarker = mMap.addMarker(new MarkerOptions().position(loc));
+        if(mMap != null){
+            mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, 16.0f));
+        }
+
+        if (mCurrLocation != null) {
+            mCurrLocation.remove();
+        }
+        //latLng = new LatLng(location.getLatitude(), location.getLongitude());
+        //MarkerOptions markerOptions = new MarkerOptions();
+        //markerOptions.position(latLng);
+        //markerOptions.title("Current Position");
+        //markerOptions.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_MAGENTA));
+        //mCurrLocation = mMap.addMarker(markerOptions);
+
+
+
+        //If you only need one location, unregister the listener
+        //LocationServices.FusedLocationApi.removeLocationUpdates(mGoogleApiClient, this);
+    }
 
 
     class GetAnomalies extends AsyncTask<Void, Void, Void>{
@@ -185,4 +349,3 @@ public class AnomalyActivity extends FragmentActivity implements OnMapReadyCallb
     } // protected void onPostExecute(Void v) */
     }
 }
-

@@ -1,5 +1,5 @@
 <resources>
     <string name="app_name">RoadSoSecurity</string>
-    <string name="title_activity_anomaly">Anomaly</string>
+    <string name="title_activity_anomaly">AnomaliesMap</string>
     <string name="google_maps_key">AIzaSyBH5FocURFuKn_id48TecGkcvL3HicTjPY</string>
 </resources>
