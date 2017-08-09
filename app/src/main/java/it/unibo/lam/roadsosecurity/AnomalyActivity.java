@@ -1,6 +1,9 @@
 package it.unibo.lam.roadsosecurity;
 
-import android.graphics.Color;
+import android.hardware.Sensor;
+import android.hardware.SensorEvent;
+import android.hardware.SensorEventListener;
+import android.hardware.SensorManager;
 import android.location.Location;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -34,19 +37,18 @@ import org.json.JSONObject;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
-import java.util.LinkedList;
 import java.util.List;
 
 import static com.google.android.gms.internal.zzt.TAG;
-import static it.unibo.lam.roadsosecurity.R.id.map;
 
 public class AnomalyActivity extends AppCompatActivity implements
         GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener,
         LocationListener,
-        OnMapReadyCallback {
+        OnMapReadyCallback, SensorEventListener {
 
     private GoogleMap mMap;
     private List<Anomaly> anomalyList;
+    private Utility utility;
     private LocationRequest mLocationRequest;
     private GoogleApiClient mGoogleApiClient;
     private LatLng latLng;
@@ -55,77 +57,87 @@ public class AnomalyActivity extends AppCompatActivity implements
     private Circle mCircle;
     private FloatingActionButton fab;
 
+    private SensorManager sensorManager;
+    private double mAccel, mAccelCurrent, mAccelLast;
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_anomaly);
-        // Obtain the SupportMapFragment and get notified when the map is ready to be used.
+
+        anomalyList = new ArrayList<>();
+        utility = new Utility();
+
         mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
 
+        sensorManager = (SensorManager)getSystemService(SENSOR_SERVICE);
+        sensorManager.registerListener(this, sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER), SensorManager.SENSOR_DELAY_UI);
+
         fab = (FloatingActionButton) findViewById(R.id.imageButton);
+
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 if(latLng != null)
                 {
                     anomalyList.add(new Anomaly(latLng.latitude,latLng.longitude));
-                    Snackbar.make(view, "Aggiunta una nuova anomalia", Snackbar.LENGTH_LONG)
-                            .setAction("Action", null).show();
+                    Snackbar.make(view, "Aggiunta una nuova anomalia.", Snackbar.LENGTH_LONG)
+                            .setAction("Annulla", new View.OnClickListener() {
+                                @Override
+                                public void onClick(View v) {
+                                    anomalyList.remove(anomalyList.size() - 1);
+                                    refreshMap();
+                                    drawMarkerWithCircle(latLng);
+                                }
+                            }).show();
 
-                    mMap.clear();
-
-                    addAnomaliesOnMap();
+                    refreshMap();
                     drawMarkerWithCircle(latLng);
-
+                }
+                else
+                {
+                    Snackbar.make(view, "Impossibile aggiungere una nuova anomalia," +
+                            " controllare che il GPS sia attivo.", Snackbar.LENGTH_LONG)
+                            .setAction("Action", null).show();
                 }
             }
         });
 
-        anomalyList = new ArrayList<>();
         this.getAnomalyList();
 
         //new GetAnomalies().execute();
+    }
+
+    public void refreshMap() {
+
+        mMap.clear();
+        addAnomaliesOnMap();
     }
 
     @Override
     public void onMapReady(GoogleMap googleMap) {
 
         mMap = googleMap;
-        // Changing map type
-        mMap.setMapType(GoogleMap.MAP_TYPE_NORMAL);
 
-        // Showing / hiding your current location
+        mMap.setMapType(GoogleMap.MAP_TYPE_TERRAIN);
         mMap.setMyLocationEnabled(true);
 
-        // Enable / Disable zooming controls
-        //mMap.getUiSettings().setZoomControlsEnabled(true);
-
-        // Enable / Disable my location button
+        mMap.getUiSettings().setZoomControlsEnabled(false);
         mMap.getUiSettings().setMyLocationButtonEnabled(true);
-
-        // Enable / Disable Compass icon
         mMap.getUiSettings().setCompassEnabled(true);
-
-        // Enable / Disable Rotate gesture
         mMap.getUiSettings().setRotateGesturesEnabled(true);
-
-        // Enable / Disable zooming functionality
         mMap.getUiSettings().setZoomGesturesEnabled(true);
 
-        mMap.setMyLocationEnabled(true);
-
         buildGoogleApiClient();
-
         mGoogleApiClient.connect();
-
         addAnomaliesOnMap();
     }
 
-    public void addAnomaliesOnMap()
-    {
+    public void addAnomaliesOnMap() {
         for (Anomaly anomaly: anomalyList) {
-            mMap.addMarker(new MarkerOptions().position(new LatLng(anomaly.getLatitude(),anomaly.getLongitude())).title("Anomalia al " + anomaly.getTrust() + "%"));
+            mMap.addMarker(new MarkerOptions().position(new LatLng(anomaly.getLatitude(), anomaly.getLongitude())).title("Anomalia al " + anomaly.getTrust() + "%").icon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_warning_amber_48dp)));
         }
     }
 
@@ -182,7 +194,6 @@ public class AnomalyActivity extends AppCompatActivity implements
         }
     }
 
-
     protected synchronized void buildGoogleApiClient() {
         Toast.makeText(this, "buildGoogleApiClient", Toast.LENGTH_SHORT).show();
         mGoogleApiClient = new GoogleApiClient.Builder(this)
@@ -192,18 +203,18 @@ public class AnomalyActivity extends AppCompatActivity implements
                 .build();
     }
 
-    private void drawMarkerWithCircle(LatLng position){
+    private void drawMarkerWithCircle(LatLng position) {
 
         if(mCircle != null)  mCircle.remove();
 
-        double radiusInMeters = 20.0;
+        double radiusInMeters = 50.0;
         int strokeColor = 0xffff0000; //red outline
         int shadeColor = 0x44ff0000; //opaque red fill
 
-        CircleOptions circleOptions = new CircleOptions().center(position).radius(radiusInMeters).fillColor(shadeColor).strokeColor(strokeColor).strokeWidth(8);
+        CircleOptions circleOptions = new CircleOptions().center(position).radius(radiusInMeters).fillColor(shadeColor).strokeColor(strokeColor).strokeWidth(8).visible(false);
         mCircle = mMap.addCircle(circleOptions);
 
-        //MarkerOptions markerOptions = new MarkerOptions().position(position);
+        //MarkerOptions markerOptions = new MarkerOptions().position(position).icon(BitmapDescriptorFactory.fromResource(R.drawable.prova));
         //mCurrLocation = mMap.addMarker(markerOptions);
     }
 
@@ -216,7 +227,7 @@ public class AnomalyActivity extends AppCompatActivity implements
             //mMap.clear();
             latLng = new LatLng(mLastLocation.getLatitude(), mLastLocation.getLongitude());
             drawMarkerWithCircle(latLng);
-            mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, 16.0f));
+            mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, 18.0f));
 
             //MarkerOptions markerOptions = new MarkerOptions();
             //markerOptions.position(latLng);
@@ -228,7 +239,7 @@ public class AnomalyActivity extends AppCompatActivity implements
         mLocationRequest = new LocationRequest();
         mLocationRequest.setInterval(5000); //5 seconds
         mLocationRequest.setFastestInterval(3000); //3 seconds
-        mLocationRequest.setPriority(LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY);
+        mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
         mLocationRequest.setSmallestDisplacement(0.1F); //1/10 meter
 
         LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient, mLocationRequest, this);
@@ -263,35 +274,104 @@ public class AnomalyActivity extends AppCompatActivity implements
                 //Toast.makeText(getBaseContext(), "Outside, distance from center: " + distance[0] + " radius: " + mCircle.getRadius(), Toast.LENGTH_LONG).show();
             } else {
                 if(!anomaly.getNotified()) {
-                    Toast.makeText(getBaseContext(), "Attenzione anomalia nelle vicinanze. (" + distance[0] + ")", Toast.LENGTH_LONG).show();
+                    utility.playSound(getApplicationContext(),2);
+                    Toast.makeText(getBaseContext(), "Attenzione, anomalia nelle vicinanze. (" + distance[0] + ")", Toast.LENGTH_LONG).show();
                     anomaly.setNotified(true);
                 }
             }
         }
 
-        //mMarker = mMap.addMarker(new MarkerOptions().position(loc));
-        if(mMap != null){
-            mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, 16.0f));
+        if(mMap != null) {
+            mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, 18.0f));
         }
 
         if (mCurrLocation != null) {
             mCurrLocation.remove();
         }
-        //latLng = new LatLng(location.getLatitude(), location.getLongitude());
-        //MarkerOptions markerOptions = new MarkerOptions();
-        //markerOptions.position(latLng);
-        //markerOptions.title("Current Position");
-        //markerOptions.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_MAGENTA));
-        //mCurrLocation = mMap.addMarker(markerOptions);
-
-
-
-        //If you only need one location, unregister the listener
-        //LocationServices.FusedLocationApi.removeLocationUpdates(mGoogleApiClient, this);
     }
 
+    @Override
+    public void onSensorChanged(SensorEvent event) {
 
-    class GetAnomalies extends AsyncTask<Void, Void, Void>{
+        double ax, ay, az;
+
+        if (event.sensor.getType() == Sensor.TYPE_ACCELEROMETER) {
+
+            ax = event.values[0];
+            ay = event.values[1];
+            az = event.values[2];
+
+            mAccelLast = mAccelCurrent;
+            mAccelCurrent = Math.sqrt(ax * ax + ay * ay + az * az);
+            double delta = mAccelCurrent - mAccelLast;
+            mAccel = mAccel * 0.9f + delta;
+
+            //Log.d("Test"," "+ax+" "+ay+" "+az);
+            int temp = utility.compare((int) ax, (int) ay, (int) az);
+
+            if (temp == 0) {
+                //orientation x
+                //Log.d("test","X orientation");
+                Log.d("test","orientation x"+ (mAccelLast-mAccelCurrent));
+                if ((mAccelLast - mAccelCurrent) > 5) {
+                    Toast.makeText(this, "pothole x", Toast.LENGTH_SHORT).show();
+                    Log.d("DARSHANROHAN", "pothole x");
+                    if (latLng != null) {
+                        utility.playSound(getBaseContext(),1);
+                        anomalyList.add(new Anomaly(latLng.latitude,latLng.longitude));
+                        refreshMap();
+                        drawMarkerWithCircle(latLng);
+                    }
+                    else {
+
+                    }
+                }
+            } else if (temp == 1) {
+                //orientation y
+                //Log.d("test","y orientation");
+                //Log.d("test",""+(mAccelLast-mAccelCurrent));
+                if ((mAccelLast - mAccelCurrent) > 5) {
+                    Toast.makeText(this, "pothole y", Toast.LENGTH_SHORT).show();
+                    Log.d("DARSHANROHAN", "pothole y");
+                    if (latLng != null) {
+                        utility.playSound(getBaseContext(),1);
+                        anomalyList.add(new Anomaly(latLng.latitude,latLng.longitude));
+                        refreshMap();
+                        drawMarkerWithCircle(latLng);
+
+                    }
+                    else {
+
+                    }
+                }
+            } else if (temp == 2) {
+                //orientation z
+                //Log.d("test","z orientation");
+                //Log.d("test","cur:"+mAccelCurrent+"      last:"+mAccelLast);
+                if ((mAccelLast - mAccelCurrent) > 5) {
+                    Toast.makeText(this, "pothole z", Toast.LENGTH_SHORT).show();
+                    Log.d("test",""+(mAccelLast-mAccelCurrent));
+                    Log.d("DARSHANROHAN", "pothole z");
+                    if (latLng != null) {
+                        utility.playSound(getBaseContext(),1);
+                        anomalyList.add(new Anomaly(latLng.latitude,latLng.longitude));
+                        refreshMap();
+                        drawMarkerWithCircle(latLng);
+                    }
+                    else {
+
+                    }
+                }
+            }
+        }
+    }
+
+    @Override
+    public void onAccuracyChanged(Sensor sensor, int accuracy) {
+        // not in use
+    }
+
+    class GetAnomalies extends AsyncTask<Void, Void, Void> {
 
         @Override
         protected Void doInBackground(Void... arg0) {

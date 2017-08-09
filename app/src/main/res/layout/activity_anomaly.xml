@@ -18,9 +18,10 @@
         android:layout_alignParentBottom="true"
         android:layout_alignParentEnd="true"
         android:layout_alignParentRight="true"
-        android:layout_margin="30dp"
-        android:background="@android:color/transparent"
+        android:layout_margin="20dp"
+        android:backgroundTint="@color/colorBackground"
         android:clickable="true"
+        android:src="@mipmap/ic_warning_amber_48dp"
         android:rotation="0" />
 
 </RelativeLayout>

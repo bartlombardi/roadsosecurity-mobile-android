@@ -1,5 +1,4 @@
 package it.unibo.lam.roadsosecurity;
-import java.util.Date;
 
 public class Anomaly {
 
