@@ -7,6 +7,7 @@ import android.hardware.SensorManager;
 import android.location.Location;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
@@ -137,7 +138,7 @@ public class AnomalyActivity extends AppCompatActivity implements
 
     public void addAnomaliesOnMap() {
         for (Anomaly anomaly: anomalyList) {
-            mMap.addMarker(new MarkerOptions().position(new LatLng(anomaly.getLatitude(), anomaly.getLongitude())).title("Anomalia al " + anomaly.getTrust() + "%").icon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_warning_amber_48dp)));
+            mMap.addMarker(new MarkerOptions().position(new LatLng(anomaly.getLatitude(), anomaly.getLongitude())).title("Anomalia al " + anomaly.getTrust() + "%").icon(BitmapDescriptorFactory.fromResource(R.drawable.marker)));
         }
     }
 
@@ -369,6 +370,13 @@ public class AnomalyActivity extends AppCompatActivity implements
     @Override
     public void onAccuracyChanged(Sensor sensor, int accuracy) {
         // not in use
+    }
+
+    @Override
+    public void onBackPressed() {
+            super.onBackPressed();
+            System.exit(0);
+            return;
     }
 
     class GetAnomalies extends AsyncTask<Void, Void, Void> {

@@ -9,8 +9,7 @@ public class Utility {
 
     public Utility() {}
 
-    public static void playSound(final Context context, final int type)
-    {
+    public static void playSound(final Context context, final int type) {
         new Thread(new Runnable()
         {
             @Override
@@ -53,4 +52,5 @@ public class Utility {
 
         return -1;
     }
+
 }

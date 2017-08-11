@@ -26,6 +26,7 @@ dependencies {
     })
     compile 'com.google.android.gms:play-services:10.2.6'
     compile 'com.google.android.gms:play-services-location:10.2.6'
+    compile 'com.android.support:design:25.2.0'
+    compile 'com.android.support.constraint:constraint-layout:1.0.2'
     testCompile 'junit:junit:4.12'
-    compile 'com.android.support:design:25.3.1'
 }
