@@ -7,7 +7,6 @@ import android.hardware.SensorManager;
 import android.location.Location;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.os.Handler;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
@@ -84,8 +83,8 @@ public class AnomalyActivity extends AppCompatActivity implements
                 if(latLng != null)
                 {
                     anomalyList.add(new Anomaly(latLng.latitude,latLng.longitude));
-                    Snackbar.make(view, "Aggiunta una nuova anomalia.", Snackbar.LENGTH_LONG)
-                            .setAction("Annulla", new View.OnClickListener() {
+                    Snackbar.make(view, "New anomaly added.", Snackbar.LENGTH_LONG)
+                            .setAction("UNDO", new View.OnClickListener() {
                                 @Override
                                 public void onClick(View v) {
                                     anomalyList.remove(anomalyList.size() - 1);
@@ -99,8 +98,8 @@ public class AnomalyActivity extends AppCompatActivity implements
                 }
                 else
                 {
-                    Snackbar.make(view, "Impossibile aggiungere una nuova anomalia," +
-                            " controllare che il GPS sia attivo.", Snackbar.LENGTH_LONG)
+                    Snackbar.make(view, "Failed to add a new anomaly," +
+                            " check GPS is active.", Snackbar.LENGTH_LONG)
                             .setAction("Action", null).show();
                 }
             }

@@ -9,6 +9,7 @@ import android.widget.Button;
 public class MenuActivity extends AppCompatActivity {
 
     private Button anomalyButton;
+    private Button aboutButton;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -16,6 +17,7 @@ public class MenuActivity extends AppCompatActivity {
         setContentView(R.layout.activity_menu);
 
         anomalyButton = (Button) findViewById(R.id.anomalyButton);
+        aboutButton = (Button) findViewById(R.id.aboutButton);
 
         anomalyButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -24,5 +26,15 @@ public class MenuActivity extends AppCompatActivity {
                 startActivity(i);
             }
         });
+
+        aboutButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent i = new Intent(getApplicationContext(),AboutActivity.class);
+                startActivity(i);
+            }
+        });
+
+
     }
 }

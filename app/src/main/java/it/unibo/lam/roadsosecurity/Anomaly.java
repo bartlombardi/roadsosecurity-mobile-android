@@ -11,24 +11,12 @@ public class Anomaly {
         return latitude;
     }
 
-    public void setLatitude(double latitude) {
-        this.latitude = latitude;
-    }
-
     public double getLongitude() {
         return longitude;
     }
 
-    public void setLongitude(double longitude) {
-        this.longitude = longitude;
-    }
-
     public double getTrust() {
         return trust;
-    }
-
-    public void setTrust(double trust) {
-        this.trust = trust;
     }
 
     public void setNotified (boolean notified) { this.notified = notified; }
@@ -42,6 +30,7 @@ public class Anomaly {
         this.trust = trust;
         this.notified = false;
     }
+
     public Anomaly(double latitude,double longitude){
         this.latitude = latitude;
         this.longitude = longitude;
