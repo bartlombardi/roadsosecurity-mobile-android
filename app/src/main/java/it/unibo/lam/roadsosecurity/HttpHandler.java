@@ -12,12 +12,7 @@ import java.net.MalformedURLException;
 import java.net.ProtocolException;
 import java.net.URL;
 
-/**
- * Created by bartolomeo on 18/05/17.
- */
-
 class HttpHandler {
-    private static final String TAG = HttpHandler.class.getSimpleName();
 
     public HttpHandler() {
     }
@@ -32,13 +27,13 @@ class HttpHandler {
             InputStream in = new BufferedInputStream(conn.getInputStream());
             response = convertStreamToString(in);
         } catch (MalformedURLException e) {
-            Log.e(TAG, "MalformedURLException: " + e.getMessage());
+            Log.e("", "MalformedURLException: " + e.getMessage());
         } catch (ProtocolException e) {
-            Log.e(TAG, "ProtocolException: " + e.getMessage());
+            Log.e("", "ProtocolException: " + e.getMessage());
         } catch (IOException e) {
-            Log.e(TAG, "IOException: " + e.getMessage());
+            Log.e("", "IOException: " + e.getMessage());
         } catch (Exception e) {
-            Log.e(TAG, "Exception: " + e.getMessage());
+            Log.e("", "Exception: " + e.getMessage());
         }
         return response;
     }

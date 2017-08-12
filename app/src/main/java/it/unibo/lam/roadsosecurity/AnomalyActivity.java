@@ -1,5 +1,6 @@
 package it.unibo.lam.roadsosecurity;
 
+import android.app.ProgressDialog;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
@@ -37,25 +38,28 @@ import org.json.JSONObject;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 import static com.google.android.gms.internal.zzt.TAG;
 
 public class AnomalyActivity extends AppCompatActivity implements
         GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener,
-        LocationListener,
-        OnMapReadyCallback, SensorEventListener {
+        LocationListener, OnMapReadyCallback, SensorEventListener {
 
     private GoogleMap mMap;
-    private List<Anomaly> anomalyList;
-    private Utility utility;
     private LocationRequest mLocationRequest;
     private GoogleApiClient mGoogleApiClient;
     private LatLng latLng;
     private SupportMapFragment mapFragment;
     private Marker mCurrLocation;
     private Circle mCircle;
+
+    private ProgressDialog pDialog;
     private FloatingActionButton fab;
+
+    private List<Anomaly> anomalyList;
+    private Utility utility;
 
     private SensorManager sensorManager;
     private double mAccel, mAccelCurrent, mAccelLast;
@@ -99,15 +103,14 @@ public class AnomalyActivity extends AppCompatActivity implements
                 else
                 {
                     Snackbar.make(view, "Failed to add a new anomaly," +
-                            " check GPS is active.", Snackbar.LENGTH_LONG)
-                            .setAction("Action", null).show();
+                            " check GPS is active.", Snackbar.LENGTH_LONG).show();
                 }
             }
         });
 
-        this.getAnomalyList();
+        //this.getAnomalyList();
 
-        //new GetAnomalies().execute();
+        new AsyncTaskParseJson().execute();
     }
 
     public void refreshMap() {
@@ -132,7 +135,7 @@ public class AnomalyActivity extends AppCompatActivity implements
 
         buildGoogleApiClient();
         mGoogleApiClient.connect();
-        addAnomaliesOnMap();
+        //addAnomaliesOnMap();
     }
 
     public void addAnomaliesOnMap() {
@@ -141,6 +144,7 @@ public class AnomalyActivity extends AppCompatActivity implements
         }
     }
 
+    /*
     public String loadJSONFromAsset() {
         String json = null;
         try {
@@ -157,7 +161,7 @@ public class AnomalyActivity extends AppCompatActivity implements
         return json;
     }
 
-    public void getAnomalyList(){
+    public void getAnomalyList() {
 
         String jsonStr = loadJSONFromAsset();
 
@@ -185,6 +189,7 @@ public class AnomalyActivity extends AppCompatActivity implements
         }
     }
 
+    */
     @Override
     public void onPause() {
         super.onPause();
@@ -375,25 +380,32 @@ public class AnomalyActivity extends AppCompatActivity implements
     public void onBackPressed() {
             super.onBackPressed();
             System.exit(0);
-            return;
     }
 
-    class GetAnomalies extends AsyncTask<Void, Void, Void> {
+    private class AsyncTaskParseJson extends AsyncTask<Void, Void, Void> {
+
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+
+            pDialog = new ProgressDialog(AnomalyActivity.this);
+            pDialog.setMessage("Please wait...");
+            pDialog.setCancelable(false);
+            pDialog.show();
+        }
 
         @Override
         protected Void doInBackground(Void... arg0) {
+
             HttpHandler sh = new HttpHandler();
             // Making a request to url and getting response
-            String url = "http://api.androidhive.info/contacts/";
+            String url = "https://my-json-server.typicode.com/bartlombardi/json/anomalies";
             String jsonStr = sh.makeServiceCall(url);
 
             Log.e(TAG, "Response from url: " + jsonStr);
             if (jsonStr != null) {
                 try {
-                    JSONObject jsonObj = new JSONObject(jsonStr);
-
-                    // Getting JSON Array node
-                    JSONArray anomalies = jsonObj.getJSONArray("");
+                    JSONArray anomalies = new JSONArray(jsonStr);
 
                     // looping through All anomalies
                     for (int i = 0; i < anomalies.length(); i++) {
@@ -402,7 +414,6 @@ public class AnomalyActivity extends AppCompatActivity implements
                         double longitude = c.getDouble("Longitude");
                         double trust = c.getDouble("Trust");
 
-                        // adding contact to contact list
                         anomalyList.add(new Anomaly(latitude,longitude,trust));
                     }
                 } catch (final JSONException e) {
@@ -415,24 +426,16 @@ public class AnomalyActivity extends AppCompatActivity implements
 
             return null;
         }
-/*
-    protected void onPostExecute(JSONObject result) {
 
-        List<Anomaly> anomalyList = new LinkedList<Anomaly>();
+        @Override
+        protected void onPostExecute(Void result) {
+            super.onPostExecute(result);
 
-        //parse JSON data
-        try {
-            JSONArray jArray = new JSONArray(result);
-            for(int i=0; i < jArray.length(); i++) {
+            addAnomaliesOnMap();
 
-                JSONObject jObject = jArray.getJSONObject(i);
-                anomalyList.add(new Anomaly(jObject.getDouble("name"),jObject.getDouble("name"),jObject.getDouble("name")));
-
-            } // End Loop
-            //this.progressDialog.dismiss();
-        } catch (JSONException e) {
-            Log.e("JSONException", "Error: " + e.toString());
-        } // catch (JSONException e)
-    } // protected void onPostExecute(Void v) */
+            if (pDialog.isShowing())
+                pDialog.dismiss();
+        }
     }
+
 }
