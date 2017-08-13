@@ -13,6 +13,7 @@ import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
@@ -37,6 +38,7 @@ import org.json.JSONObject;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -53,16 +55,27 @@ public class AnomalyActivity extends AppCompatActivity implements
     private LatLng latLng;
     private SupportMapFragment mapFragment;
     private Marker mCurrLocation;
+
     private Circle mCircle;
 
     private ProgressDialog pDialog;
     private FloatingActionButton fab;
 
     private List<Anomaly> anomalyList;
+    private List<Anomaly> anomalyDetectedList;
     private Utility utility;
 
     private SensorManager sensorManager;
     private double mAccel, mAccelCurrent, mAccelLast;
+
+    private TextView footerSpeed;
+
+    private TextView footerDistance;
+    private Location lastKnownLocation;
+    private double totalDistance;
+
+    private TextView footerAnomaly;
+
 
 
     @Override
@@ -70,7 +83,11 @@ public class AnomalyActivity extends AppCompatActivity implements
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_anomaly);
 
+        lastKnownLocation = null;
+        totalDistance = 0;
+
         anomalyList = new ArrayList<>();
+        anomalyDetectedList = new ArrayList<>();
         utility = new Utility();
 
         mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
@@ -79,6 +96,10 @@ public class AnomalyActivity extends AppCompatActivity implements
         sensorManager = (SensorManager)getSystemService(SENSOR_SERVICE);
         sensorManager.registerListener(this, sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER), SensorManager.SENSOR_DELAY_UI);
 
+        footerSpeed = (TextView) findViewById(R.id.speed);
+        footerDistance = (TextView) findViewById(R.id.distance);
+        footerAnomaly = (TextView) findViewById(R.id.anomaly);
+
         fab = (FloatingActionButton) findViewById(R.id.imageButton);
 
         fab.setOnClickListener(new View.OnClickListener() {
@@ -86,12 +107,12 @@ public class AnomalyActivity extends AppCompatActivity implements
             public void onClick(View view) {
                 if(latLng != null)
                 {
-                    anomalyList.add(new Anomaly(latLng.latitude,latLng.longitude));
+                    anomalyDetectedList.add(new Anomaly(latLng.latitude,latLng.longitude));
                     Snackbar.make(view, "New anomaly added.", Snackbar.LENGTH_LONG)
                             .setAction("UNDO", new View.OnClickListener() {
                                 @Override
                                 public void onClick(View v) {
-                                    anomalyList.remove(anomalyList.size() - 1);
+                                    anomalyDetectedList.remove(anomalyDetectedList.size() - 1);
                                     refreshMap();
                                     drawMarkerWithCircle(latLng);
                                 }
@@ -227,6 +248,7 @@ public class AnomalyActivity extends AppCompatActivity implements
     public void onConnected(Bundle bundle) {
         Toast.makeText(this, "onConnected", Toast.LENGTH_SHORT).show();
         Location mLastLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
+
         if (mLastLocation != null) {
             //place marker at current position
             //mMap.clear();
@@ -263,6 +285,21 @@ public class AnomalyActivity extends AppCompatActivity implements
     @Override
     public void onLocationChanged(Location location) {
         Toast.makeText(this, "Location Changed", Toast.LENGTH_SHORT).show();
+
+        if(lastKnownLocation == null)
+        {
+            lastKnownLocation = location;
+        }else {
+
+            totalDistance += utility.distance(lastKnownLocation.getLatitude(),lastKnownLocation.getLongitude(),location.getLatitude(),location.getLongitude());
+
+            //Location.distanceBetween(lastKnownLocation.getLatitude(),lastKnownLocation.getLongitude(),location.getLatitude(),location.getLongitude(),distance);
+            //distance = lastKnownLocation.distanceTo(location);
+            footerDistance.setText(new DecimalFormat("####.##").format(totalDistance).toString() + " Km" );
+        }
+
+        footerSpeed.setText(Integer.toString((int) ((location.getSpeed() * 3600) / 1000)) + " Km/h");
+
         latLng = new LatLng(location.getLatitude(), location.getLongitude());
 
         drawMarkerWithCircle(latLng);
@@ -280,7 +317,7 @@ public class AnomalyActivity extends AppCompatActivity implements
             } else {
                 if(!anomaly.getNotified()) {
                     utility.playSound(getApplicationContext(),2);
-                    Toast.makeText(getBaseContext(), "Attenzione, anomalia nelle vicinanze. (" + distance[0] + ")", Toast.LENGTH_LONG).show();
+                    Toast.makeText(getBaseContext(), "Stay attention, anomaly nearby. (" + distance[0] + ")", Toast.LENGTH_LONG).show();
                     anomaly.setNotified(true);
                 }
             }
@@ -300,6 +337,8 @@ public class AnomalyActivity extends AppCompatActivity implements
 
         double ax, ay, az;
 
+        footerAnomaly.setText(Integer.toString(anomalyDetectedList.size()));
+
         if (event.sensor.getType() == Sensor.TYPE_ACCELEROMETER) {
 
             ax = event.values[0];
@@ -311,7 +350,6 @@ public class AnomalyActivity extends AppCompatActivity implements
             double delta = mAccelCurrent - mAccelLast;
             mAccel = mAccel * 0.9f + delta;
 
-            //Log.d("Test"," "+ax+" "+ay+" "+az);
             int temp = utility.compare((int) ax, (int) ay, (int) az);
 
             if (temp == 0) {
@@ -323,7 +361,7 @@ public class AnomalyActivity extends AppCompatActivity implements
                     Log.d("DARSHANROHAN", "pothole x");
                     if (latLng != null) {
                         utility.playSound(getBaseContext(),1);
-                        anomalyList.add(new Anomaly(latLng.latitude,latLng.longitude));
+                        anomalyDetectedList.add(new Anomaly(latLng.latitude,latLng.longitude));
                         refreshMap();
                         drawMarkerWithCircle(latLng);
                     }
@@ -340,7 +378,7 @@ public class AnomalyActivity extends AppCompatActivity implements
                     Log.d("DARSHANROHAN", "pothole y");
                     if (latLng != null) {
                         utility.playSound(getBaseContext(),1);
-                        anomalyList.add(new Anomaly(latLng.latitude,latLng.longitude));
+                        anomalyDetectedList.add(new Anomaly(latLng.latitude,latLng.longitude));
                         refreshMap();
                         drawMarkerWithCircle(latLng);
 
@@ -359,7 +397,7 @@ public class AnomalyActivity extends AppCompatActivity implements
                     Log.d("DARSHANROHAN", "pothole z");
                     if (latLng != null) {
                         utility.playSound(getBaseContext(),1);
-                        anomalyList.add(new Anomaly(latLng.latitude,latLng.longitude));
+                        anomalyDetectedList.add(new Anomaly(latLng.latitude,latLng.longitude));
                         refreshMap();
                         drawMarkerWithCircle(latLng);
                     }
@@ -398,7 +436,7 @@ public class AnomalyActivity extends AppCompatActivity implements
         protected Void doInBackground(Void... arg0) {
 
             HttpHandler sh = new HttpHandler();
-            // Making a request to url and getting response
+
             String url = "https://my-json-server.typicode.com/bartlombardi/json/anomalies";
             String jsonStr = sh.makeServiceCall(url);
 
