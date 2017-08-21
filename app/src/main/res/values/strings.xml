@@ -6,5 +6,9 @@
     <string name="speed">Speed:</string>
     <string name="distance">Distance:</string>
     <string name="anomaly">Anomaly detected:</string>
+    <string name="savePhoneNumber">Save</string>
+    <string name="insertNumber">Insert valid number</string>
+    <string name="accessibility">Icon</string>
+    <string name="hintPhone">favourite number</string>
 
 </resources>

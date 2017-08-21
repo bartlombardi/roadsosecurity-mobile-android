@@ -121,7 +121,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_weight="0.46"
-                    android:padding="@dimen/about_text_padding"
+                    android:padding="@dimen/about_item_text_size"
                     android:text="@string/anomaly"
                     android:textAlignment="textStart"
                     android:textAllCaps="true"
@@ -142,12 +142,12 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_weight="0.46"
-                    android:padding="@dimen/about_text_padding"
+                    android:padding="@dimen/about_item_text_size"
                     android:text="0"
-                    android:textAlignment="textStart"
+                    android:textAlignment="center"
                     android:textAllCaps="true"
-                    android:textColor="@color/colorBackground"
-                    android:textSize="18sp"
+                    android:textColor="@color/colorAnomalyDetected"
+                    android:textSize="36sp"
                     android:textStyle="bold" />
 
             </LinearLayout>

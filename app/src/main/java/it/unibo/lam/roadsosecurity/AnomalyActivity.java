@@ -163,6 +163,10 @@ public class AnomalyActivity extends AppCompatActivity implements
         for (Anomaly anomaly: anomalyList) {
             mMap.addMarker(new MarkerOptions().position(new LatLng(anomaly.getLatitude(), anomaly.getLongitude())).title("Anomalia al " + anomaly.getTrust() + "%").icon(BitmapDescriptorFactory.fromResource(R.drawable.marker)));
         }
+
+        for (Anomaly anomaly: anomalyDetectedList) {
+            mMap.addMarker(new MarkerOptions().position(new LatLng(anomaly.getLatitude(), anomaly.getLongitude())).title("Anomalia al " + anomaly.getTrust() + "%").icon(BitmapDescriptorFactory.fromResource(R.drawable.marker)));
+        }
     }
 
     /*

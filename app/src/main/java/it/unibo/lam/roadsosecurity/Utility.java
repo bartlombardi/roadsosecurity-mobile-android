@@ -73,4 +73,9 @@ public class Utility {
     private static double rad2deg(double rad) {
         return (rad * 180.0 / Math.PI);
     }
+
+    public static boolean validCellPhone(String number)
+    {
+        return android.util.Patterns.PHONE.matcher(number).matches();
+    }
 }

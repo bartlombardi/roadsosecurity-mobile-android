@@ -1,10 +1,13 @@
 package it.unibo.lam.roadsosecurity;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
+import android.preference.PreferenceManager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
+import android.widget.Toast;
 
 public class MenuActivity extends AppCompatActivity {
 
@@ -15,6 +18,15 @@ public class MenuActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_menu);
+
+        Boolean isFirstRun = getSharedPreferences("PREFERENCE", MODE_PRIVATE)
+                .getBoolean("isFirstRun", true);
+
+        if (isFirstRun) {
+
+            startActivity(new Intent(this, NumberActivity.class));
+            //Toast.makeText(this, "First Run", Toast.LENGTH_LONG).show();
+        }
 
         anomalyButton = (Button) findViewById(R.id.anomalyButton);
         aboutButton = (Button) findViewById(R.id.aboutButton);
@@ -35,6 +47,11 @@ public class MenuActivity extends AppCompatActivity {
             }
         });
 
+    }
 
+    @Override
+    public void onBackPressed() {
+        super.onBackPressed();
+        System.exit(0);
     }
 }
