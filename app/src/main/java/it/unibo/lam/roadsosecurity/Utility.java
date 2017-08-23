@@ -3,6 +3,7 @@ package it.unibo.lam.roadsosecurity;
 import android.content.Context;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
+import android.telephony.SmsManager;
 
 
 public class Utility {
@@ -77,5 +78,10 @@ public class Utility {
     public static boolean validCellPhone(String number)
     {
         return android.util.Patterns.PHONE.matcher(number).matches();
+    }
+
+    public static void sendSMS(String phoneNumber, String message) {
+        SmsManager sms = SmsManager.getDefault();
+        sms.sendTextMessage(phoneNumber, null, message, null, null);
     }
 }

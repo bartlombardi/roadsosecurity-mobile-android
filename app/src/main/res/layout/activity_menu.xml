@@ -8,10 +8,35 @@
     tools:context="it.unibo.lam.roadsosecurity.MenuActivity">
 
     <Button
-        android:id="@+id/anomalyButton"
+        android:id="@+id/numberButton"
         android:layout_width="0dp"
         android:layout_height="65dp"
         android:layout_marginBottom="152dp"
+        android:layout_marginEnd="47dp"
+        android:layout_marginStart="47dp"
+        android:layout_weight="1"
+        android:height="60dp"
+        android:background="@drawable/home_buttons"
+        android:drawablePadding="6dp"
+        android:fontFamily="casual"
+        android:gravity="start|center"
+        android:padding="6dp"
+        android:text="@string/numberButton"
+        android:textAlignment="center"
+        android:textColor="#000"
+        android:textSize="30sp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        tools:layout_constraintBottom_creator="1"
+        tools:layout_constraintLeft_creator="1"
+        tools:layout_constraintRight_creator="1" />
+
+    <Button
+        android:id="@+id/anomalyButton"
+        android:layout_width="0dp"
+        android:layout_height="65dp"
+        android:layout_marginBottom="231dp"
         android:layout_marginEnd="47dp"
         android:layout_marginStart="47dp"
         android:layout_weight="1"

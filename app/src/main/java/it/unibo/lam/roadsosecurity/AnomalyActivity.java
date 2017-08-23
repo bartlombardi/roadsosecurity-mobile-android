@@ -1,18 +1,25 @@
 package it.unibo.lam.roadsosecurity;
 
+import android.app.AlertDialog;
 import android.app.ProgressDialog;
+import android.content.DialogInterface;
+import android.content.Intent;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.location.Location;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.CountDownTimer;
+import android.preference.PreferenceManager;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
+import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -36,14 +43,11 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.IOException;
-import java.io.InputStream;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-
-import static com.google.android.gms.internal.zzt.TAG;
+import java.util.Locale;
+import java.util.concurrent.TimeUnit;
 
 public class AnomalyActivity extends AppCompatActivity implements
         GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener,
@@ -356,10 +360,10 @@ public class AnomalyActivity extends AppCompatActivity implements
 
             int temp = utility.compare((int) ax, (int) ay, (int) az);
 
-            if (temp == 0) {
+            /*if (temp == 0) {
                 //orientation x
                 //Log.d("test","X orientation");
-                Log.d("test","orientation x"+ (mAccelLast-mAccelCurrent));
+                //Log.d("test","orientation x"+ (mAccelLast-mAccelCurrent));
                 if ((mAccelLast - mAccelCurrent) > 5) {
                     Toast.makeText(this, "pothole x", Toast.LENGTH_SHORT).show();
                     Log.d("DARSHANROHAN", "pothole x");
@@ -373,7 +377,8 @@ public class AnomalyActivity extends AppCompatActivity implements
 
                     }
                 }
-            } else if (temp == 1) {
+            }*/
+            if (temp == 1) {
                 //orientation y
                 //Log.d("test","y orientation");
                 //Log.d("test",""+(mAccelLast-mAccelCurrent));
@@ -385,8 +390,7 @@ public class AnomalyActivity extends AppCompatActivity implements
                         anomalyDetectedList.add(new Anomaly(latLng.latitude,latLng.longitude));
                         refreshMap();
                         drawMarkerWithCircle(latLng);
-
-                    }
+                        }
                     else {
 
                     }
@@ -400,10 +404,50 @@ public class AnomalyActivity extends AppCompatActivity implements
                     Log.d("test",""+(mAccelLast-mAccelCurrent));
                     Log.d("DARSHANROHAN", "pothole z");
                     if (latLng != null) {
+
                         utility.playSound(getBaseContext(),1);
                         anomalyDetectedList.add(new Anomaly(latLng.latitude,latLng.longitude));
                         refreshMap();
                         drawMarkerWithCircle(latLng);
+
+                        AlertDialog dialog = new AlertDialog.Builder(this)
+                                .setTitle("Accident detected")
+                                .setMessage("Do you really want to delete the file?")
+                                .setNegativeButton(android.R.string.no, new DialogInterface.OnClickListener() {
+                                    @Override
+                                    public void onClick(DialogInterface dialog, int which) {
+                                        dialog.dismiss();
+                                    }
+                                })
+                                .setPositiveButton(android.R.string.yes, null)
+                                .create();
+                        dialog.setOnShowListener(new DialogInterface.OnShowListener() {
+                            private static final int AUTO_DISMISS_MILLIS = 10000;
+                            @Override
+                            public void onShow(final DialogInterface dialog) {
+                                final Button defaultButton = ((AlertDialog) dialog).getButton(AlertDialog.BUTTON_POSITIVE);
+                                final CharSequence positiveButtonText = defaultButton.getText();
+                                new CountDownTimer(AUTO_DISMISS_MILLIS, 100) {
+                                    @Override
+                                    public void onTick(long millisUntilFinished) {
+                                        defaultButton.setText(String.format(
+                                                Locale.getDefault(), "%s (%d)",
+                                                positiveButtonText,
+                                                TimeUnit.MILLISECONDS.toSeconds(millisUntilFinished) + 1 //add one so it never displays zero
+                                        ));
+                                    }
+                                    @Override
+                                    public void onFinish() {
+                                        if (((AlertDialog) dialog).isShowing()) {
+                                            utility.sendSMS(PreferenceManager.getDefaultSharedPreferences(getApplicationContext()).getString("number", ""),
+                                                    "Accident occurred. You are requested to help. Accident location lat: " + latLng.latitude + " N lon: " + latLng.longitude + " E");
+                                            dialog.dismiss();
+                                        }
+                                    }
+                                }.start();
+                            }
+                        });
+                        dialog.show();
                     }
                     else {
 
@@ -444,7 +488,7 @@ public class AnomalyActivity extends AppCompatActivity implements
             String url = "https://my-json-server.typicode.com/bartlombardi/json/anomalies";
             String jsonStr = sh.makeServiceCall(url);
 
-            Log.e(TAG, "Response from url: " + jsonStr);
+            Log.e("ASYNC", "Response from url: " + jsonStr);
             if (jsonStr != null) {
                 try {
                     JSONArray anomalies = new JSONArray(jsonStr);
@@ -459,11 +503,11 @@ public class AnomalyActivity extends AppCompatActivity implements
                         anomalyList.add(new Anomaly(latitude,longitude,trust));
                     }
                 } catch (final JSONException e) {
-                    Log.e(TAG, "Json parsing error: " + e.getMessage());
+                    Log.e("ASYNC", "Json parsing error: " + e.getMessage());
                 }
 
             } else {
-                Log.e(TAG, "Couldn't get json from server.");
+                Log.e("ASYNC", "Couldn't get json from server.");
             }
 
             return null;
