@@ -5,7 +5,6 @@ import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.telephony.SmsManager;
 
-
 public class Utility {
 
     public Utility() {}
@@ -75,8 +74,7 @@ public class Utility {
         return (rad * 180.0 / Math.PI);
     }
 
-    public static boolean validCellPhone(String number)
-    {
+    public static boolean validCellPhone(String number) {
         return android.util.Patterns.PHONE.matcher(number).matches();
     }
 

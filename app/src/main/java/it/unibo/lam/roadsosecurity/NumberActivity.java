@@ -58,8 +58,12 @@ public class NumberActivity extends AppCompatActivity {
                 }
                 else {
                     errorText.setVisibility(View.VISIBLE);
-                    Toast.makeText(getApplicationContext(), "Invalid number", Toast.LENGTH_SHORT).show();
-                }
+
+                    AlertDialog.Builder alert = new AlertDialog.Builder(NumberActivity.this);
+                    alert.setTitle("Error");
+                    alert.setMessage("Please, insert valid favourite phone number.");
+                    alert.setPositiveButton("OK",null);
+                    alert.show();                }
             }
         });
 

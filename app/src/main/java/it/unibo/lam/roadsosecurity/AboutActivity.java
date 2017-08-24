@@ -18,16 +18,16 @@ public class AboutActivity extends AppCompatActivity {
 
         View aboutPage = new AboutPage(this)
                 .isRTL(false)
-                .setDescription("Mobile Application Laboratory course, University of Bologna - Masters in Computer Science. \n" +
-                        "This app helps in accident cases or when you're terribly hurt, " +
-                        "immidiately informing your emergency contacts about your whereabouts by " +
-                        "sending them SMSes.")
+                .setDescription("Mobile Application Laboratory course,\n" +
+                        "University of Bologna - Masters in Computer Science. \n\n" +
+                        "This app helps in accident cases immediately informing your emergency " +
+                        "contact about your latitude and longitude through sending SMSes. \n" +
+                        "Furthermore, this road anomaly mapping system that is able to detect " +
+                        "road potholes with high accuracy.")
                 .setImage(R.drawable.icon_about)
                 .addItem(versionElement)
                 .addGroup("Connect with us")
                 .addEmail("bartolombardi@gmail.com")
-                .addFacebook("bartolomeo.lombardi")
-                .addInstagram("bartlombardi")
                 .addGitHub("bartlombardi/roadsosecurity-mobile-android")
                 .create();
 

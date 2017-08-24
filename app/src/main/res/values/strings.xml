@@ -11,5 +11,6 @@
     <string name="accessibility">Icon</string>
     <string name="hintPhone">favourite phone number</string>
     <string name="numberButton">Change phone number</string>
+    <string name="descriptionNumber">In case of incident detected, emergency alert message will be sent to number that you insert here :</string>
 
 </resources>
