@@ -80,8 +80,6 @@ public class AnomalyActivity extends AppCompatActivity implements
 
     private TextView footerAnomaly;
 
-
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -485,7 +483,7 @@ public class AnomalyActivity extends AppCompatActivity implements
 
             HttpHandler sh = new HttpHandler();
 
-            String url = "https://my-json-server.typicode.com/bartlombardi/json/anomalies";
+            String url = "http://bartlombardi-001-site1.dtempurl.com/Api/Anomalies";
             String jsonStr = sh.makeServiceCall(url);
 
             Log.e("ASYNC", "Response from url: " + jsonStr);
