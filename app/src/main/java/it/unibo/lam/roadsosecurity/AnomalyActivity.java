@@ -163,11 +163,11 @@ public class AnomalyActivity extends AppCompatActivity implements
 
     public void addAnomaliesOnMap() {
         for (Anomaly anomaly: anomalyList) {
-            mMap.addMarker(new MarkerOptions().position(new LatLng(anomaly.getLatitude(), anomaly.getLongitude())).title("Anomalia al " + anomaly.getTrust() + "%").icon(BitmapDescriptorFactory.fromResource(R.drawable.marker)));
+            mMap.addMarker(new MarkerOptions().position(new LatLng(anomaly.getLatitude(), anomaly.getLongitude())).title(new DecimalFormat("##.##").format(anomaly.getTrust()) + "% chance of an anomaly here").icon(BitmapDescriptorFactory.fromResource(R.drawable.marker)));
         }
 
         for (Anomaly anomaly: anomalyDetectedList) {
-            mMap.addMarker(new MarkerOptions().position(new LatLng(anomaly.getLatitude(), anomaly.getLongitude())).title("Anomalia al " + anomaly.getTrust() + "%").icon(BitmapDescriptorFactory.fromResource(R.drawable.marker)));
+            mMap.addMarker(new MarkerOptions().position(new LatLng(anomaly.getLatitude(), anomaly.getLongitude())).title(new DecimalFormat("##.##").format(anomaly.getTrust()) + "% chance of an anomaly here").icon(BitmapDescriptorFactory.fromResource(R.drawable.marker)));
         }
     }
 
@@ -403,10 +403,10 @@ public class AnomalyActivity extends AppCompatActivity implements
                     Log.d("DARSHANROHAN", "pothole z");
                     if (latLng != null) {
 
-                        utility.playSound(getBaseContext(),1);
-                        anomalyDetectedList.add(new Anomaly(latLng.latitude,latLng.longitude));
-                        refreshMap();
-                        drawMarkerWithCircle(latLng);
+                        //utility.playSound(getBaseContext(),1);
+                        //anomalyDetectedList.add(new Anomaly(latLng.latitude,latLng.longitude));
+                        //refreshMap();
+                        //drawMarkerWithCircle(latLng);
 
                         AlertDialog dialog = new AlertDialog.Builder(this)
                                 .setTitle("Accident detected")
@@ -462,8 +462,8 @@ public class AnomalyActivity extends AppCompatActivity implements
 
     @Override
     public void onBackPressed() {
-            super.onBackPressed();
-            System.exit(0);
+
+            new AsyncTaskSendJson().execute();
     }
 
     private class AsyncTaskParseJson extends AsyncTask<Void, Void, Void> {
@@ -519,6 +519,46 @@ public class AnomalyActivity extends AppCompatActivity implements
 
             if (pDialog.isShowing())
                 pDialog.dismiss();
+        }
+    }
+
+    private class AsyncTaskSendJson extends AsyncTask<Void, Void, Void> {
+
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+
+            pDialog = new ProgressDialog(AnomalyActivity.this);
+            pDialog.setMessage("Please wait...");
+            pDialog.setCancelable(false);
+            pDialog.show();
+        }
+
+        @Override
+        protected Void doInBackground(Void... arg0) {
+
+            HttpHandler sh = new HttpHandler();
+
+            for(Anomaly anomaly : anomalyDetectedList) {
+
+                String url = "http://bartlombardi-001-site1.dtempurl.com/Api/Anomalies";
+                url += "?latitude="+anomaly.getLatitude()+"&longitude="+anomaly.getLongitude();
+                String jsonStr = sh.makeServiceCall(url);
+                Log.e("ASYNC", "Response from url: " + jsonStr);
+            }
+
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(Void result) {
+            super.onPostExecute(result);
+
+            if (pDialog.isShowing())
+                pDialog.dismiss();
+
+
+            System.exit(0);
         }
     }
 
