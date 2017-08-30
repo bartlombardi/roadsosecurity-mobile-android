@@ -9,9 +9,9 @@
 
     <Button
         android:id="@+id/numberButton"
-        android:layout_width="0dp"
-        android:layout_height="65dp"
-        android:layout_marginBottom="152dp"
+        android:layout_width="match_parent"
+        android:layout_height="101dp"
+        android:layout_marginBottom="108dp"
         android:layout_marginEnd="47dp"
         android:layout_marginStart="47dp"
         android:layout_weight="1"
@@ -26,6 +26,7 @@
         android:textColor="#000"
         android:textSize="30sp"
         app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintHorizontal_bias="0.494"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
         tools:layout_constraintBottom_creator="1"
@@ -34,9 +35,9 @@
 
     <Button
         android:id="@+id/anomalyButton"
-        android:layout_width="0dp"
+        android:layout_width="match_parent"
         android:layout_height="65dp"
-        android:layout_marginBottom="231dp"
+        android:layout_marginBottom="222dp"
         android:layout_marginEnd="47dp"
         android:layout_marginStart="47dp"
         android:layout_weight="1"
@@ -55,13 +56,14 @@
         app:layout_constraintRight_toRightOf="parent"
         tools:layout_constraintBottom_creator="1"
         tools:layout_constraintLeft_creator="1"
-        tools:layout_constraintRight_creator="1" />
+        tools:layout_constraintRight_creator="1"
+        app:layout_constraintHorizontal_bias="0.494" />
 
     <Button
         android:id="@+id/aboutButton"
-        android:layout_width="0dp"
+        android:layout_width="match_parent"
         android:layout_height="65dp"
-        android:layout_marginBottom="75dp"
+        android:layout_marginBottom="30dp"
         android:layout_marginEnd="47dp"
         android:layout_marginStart="47dp"
         android:layout_weight="1"
@@ -76,7 +78,7 @@
         android:textColor="#000"
         android:textSize="30sp"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintHorizontal_bias="0.263"
+        app:layout_constraintHorizontal_bias="0.494"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
         tools:layout_constraintBottom_creator="1"
