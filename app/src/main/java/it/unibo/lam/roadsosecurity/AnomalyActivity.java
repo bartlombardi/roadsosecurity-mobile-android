@@ -50,8 +50,7 @@ import java.util.Locale;
 import java.util.concurrent.TimeUnit;
 
 public class AnomalyActivity extends AppCompatActivity implements
-        GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener,
-        LocationListener, OnMapReadyCallback, SensorEventListener {
+        GoogleApiClient.ConnectionCallbacks,LocationListener, OnMapReadyCallback, SensorEventListener {
 
     private GoogleMap mMap;
     private LocationRequest mLocationRequest;
@@ -230,7 +229,6 @@ public class AnomalyActivity extends AppCompatActivity implements
         Toast.makeText(this, "buildGoogleApiClient", Toast.LENGTH_SHORT).show();
         mGoogleApiClient = new GoogleApiClient.Builder(this)
                 .addConnectionCallbacks(this)
-                .addOnConnectionFailedListener(this)
                 .addApi(LocationServices.API)
                 .build();
     }
@@ -280,17 +278,12 @@ public class AnomalyActivity extends AppCompatActivity implements
 
     @Override
     public void onConnectionSuspended(int i) {
-        Toast.makeText(this,"onConnectionSuspended",Toast.LENGTH_SHORT).show();
-    }
 
-    @Override
-    public void onConnectionFailed(ConnectionResult connectionResult) {
-        Toast.makeText(this,"onConnectionFailed",Toast.LENGTH_SHORT).show();
     }
 
     @Override
     public void onLocationChanged(Location location) {
-        Toast.makeText(this, "Location Changed", Toast.LENGTH_SHORT).show();
+        //Toast.makeText(this, "Location Changed", Toast.LENGTH_SHORT).show();
 
         if(lastKnownLocation == null)
         {
@@ -381,7 +374,7 @@ public class AnomalyActivity extends AppCompatActivity implements
                 //Log.d("test","y orientation");
                 //Log.d("test",""+(mAccelLast-mAccelCurrent));
                 if ((mAccelLast - mAccelCurrent) > 5) {
-                    Toast.makeText(this, "pothole y", Toast.LENGTH_SHORT).show();
+                    //Toast.makeText(this, "pothole y", Toast.LENGTH_SHORT).show();
                     Log.d("DARSHANROHAN", "pothole y");
                     if (latLng != null) {
                         utility.playSound(getBaseContext(),1);
@@ -398,7 +391,7 @@ public class AnomalyActivity extends AppCompatActivity implements
                 //Log.d("test","z orientation");
                 //Log.d("test","cur:"+mAccelCurrent+"      last:"+mAccelLast);
                 if ((mAccelLast - mAccelCurrent) > 5) {
-                    Toast.makeText(this, "pothole z", Toast.LENGTH_SHORT).show();
+                    //Toast.makeText(this, "pothole z", Toast.LENGTH_SHORT).show();
                     Log.d("test",""+(mAccelLast-mAccelCurrent));
                     Log.d("DARSHANROHAN", "pothole z");
                     if (latLng != null) {
@@ -410,7 +403,7 @@ public class AnomalyActivity extends AppCompatActivity implements
 
                         AlertDialog dialog = new AlertDialog.Builder(this)
                                 .setTitle("Accident detected")
-                                .setMessage("Do you really want to delete the file?")
+                                .setMessage("Do you really want to send emergency alert message?")
                                 .setNegativeButton(android.R.string.no, new DialogInterface.OnClickListener() {
                                     @Override
                                     public void onClick(DialogInterface dialog, int which) {
