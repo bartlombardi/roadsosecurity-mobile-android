@@ -130,6 +130,7 @@ public class AnomalyActivity extends AppCompatActivity implements
             }
         });
 
+        //DEBUG JSON FROM FILE
         //this.getAnomalyList();
 
         new AsyncTaskParseJson().execute();
@@ -157,6 +158,7 @@ public class AnomalyActivity extends AppCompatActivity implements
 
         buildGoogleApiClient();
         mGoogleApiClient.connect();
+        //DEBUG JSON FROM FILE
         //addAnomaliesOnMap();
     }
 
@@ -341,46 +343,21 @@ public class AnomalyActivity extends AppCompatActivity implements
 
             int temp = utility.compare((int) ax, (int) ay, (int) az);
 
-            /*if (temp == 0) {
-                //orientation x
-                //Log.d("test","X orientation");
-                //Log.d("test","orientation x"+ (mAccelLast-mAccelCurrent));
-                if ((mAccelLast - mAccelCurrent) > 5) {
-                    Toast.makeText(this, "pothole x", Toast.LENGTH_SHORT).show();
-                    Log.d("DARSHANROHAN", "pothole x");
-                    if (latLng != null) {
-                        utility.playSound(getBaseContext(),1);
-                        anomalyDetectedList.add(new Anomaly(latLng.latitude,latLng.longitude));
-                        refreshMap();
-                        drawMarkerWithCircle(latLng);
-                    }
-                    else {
-
-                    }
-                }
-            }*/
+            //orientation y
             if (temp == 1) {
-                //orientation y
-                //Log.d("test","y orientation");
+                Log.d("test","y orientation");
                 if ((mAccelLast - mAccelCurrent) > 5) {
                     if (latLng != null) {
                         utility.playSound(getBaseContext(),1);
                         anomalyDetectedList.add(new Anomaly(latLng.latitude,latLng.longitude));
                         refreshMap();
                         drawMarkerWithCircle(latLng);
-                        }
-                    else {
-
                     }
                 }
             } else if (temp == 2) {
                 //orientation z
-                //Log.d("test","z orientation");
-                //Log.d("test","cur:"+mAccelCurrent+"      last:"+mAccelLast);
+                Log.d("test","z orientation");
                 if ((mAccelLast - mAccelCurrent) > 5) {
-                    //Toast.makeText(this, "pothole z", Toast.LENGTH_SHORT).show();
-                    Log.d("test",""+(mAccelLast-mAccelCurrent));
-                    Log.d("DARSHANROHAN", "pothole z");
                     if (latLng != null) {
 
                         AlertDialog dialog = new AlertDialog.Builder(this)
@@ -422,9 +399,6 @@ public class AnomalyActivity extends AppCompatActivity implements
                             }
                         });
                         dialog.show();
-                    }
-                    else {
-
                     }
                 }
             }
