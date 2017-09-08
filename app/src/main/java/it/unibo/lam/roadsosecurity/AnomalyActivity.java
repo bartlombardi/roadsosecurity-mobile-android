@@ -171,6 +171,7 @@ public class AnomalyActivity extends AppCompatActivity implements
     }
 
     /*
+    DEBUG - JSON FILE
     public String loadJSONFromAsset() {
         String json = null;
         try {
@@ -214,8 +215,8 @@ public class AnomalyActivity extends AppCompatActivity implements
             Log.e(TAG, "Couldn't get json from server.");
         }
     }
-
     */
+
     @Override
     public void onPause() {
         super.onPause();
@@ -250,28 +251,19 @@ public class AnomalyActivity extends AppCompatActivity implements
 
     @Override
     public void onConnected(Bundle bundle) {
-        Toast.makeText(this, "onConnected", Toast.LENGTH_SHORT).show();
         Location mLastLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
 
         if (mLastLocation != null) {
-            //place marker at current position
-            //mMap.clear();
             latLng = new LatLng(mLastLocation.getLatitude(), mLastLocation.getLongitude());
             drawMarkerWithCircle(latLng);
             mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, 18.0f));
-
-            //MarkerOptions markerOptions = new MarkerOptions();
-            //markerOptions.position(latLng);
-            //markerOptions.title("Current Position");
-            //markerOptions.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_MAGENTA));
-            //mCurrLocation = mMap.addMarker(markerOptions);
         }
 
         mLocationRequest = new LocationRequest();
-        mLocationRequest.setInterval(5000); //5 seconds
-        mLocationRequest.setFastestInterval(3000); //3 seconds
+        mLocationRequest.setInterval(5000);
+        mLocationRequest.setFastestInterval(3000);
         mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
-        mLocationRequest.setSmallestDisplacement(0.1F); //1/10 meter
+        mLocationRequest.setSmallestDisplacement(0.1F);
 
         LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient, mLocationRequest, this);
     }
@@ -283,7 +275,6 @@ public class AnomalyActivity extends AppCompatActivity implements
 
     @Override
     public void onLocationChanged(Location location) {
-        //Toast.makeText(this, "Location Changed", Toast.LENGTH_SHORT).show();
 
         if(lastKnownLocation == null)
         {
@@ -312,7 +303,6 @@ public class AnomalyActivity extends AppCompatActivity implements
 
             if (distance[0] > mCircle.getRadius()) {
                 if(anomaly.getNotified()) anomaly.setNotified(false);
-                //Toast.makeText(getBaseContext(), "Outside, distance from center: " + distance[0] + " radius: " + mCircle.getRadius(), Toast.LENGTH_LONG).show();
             } else {
                 if(!anomaly.getNotified()) {
                     utility.playSound(getApplicationContext(),2);
@@ -372,10 +362,7 @@ public class AnomalyActivity extends AppCompatActivity implements
             if (temp == 1) {
                 //orientation y
                 //Log.d("test","y orientation");
-                //Log.d("test",""+(mAccelLast-mAccelCurrent));
                 if ((mAccelLast - mAccelCurrent) > 5) {
-                    //Toast.makeText(this, "pothole y", Toast.LENGTH_SHORT).show();
-                    Log.d("DARSHANROHAN", "pothole y");
                     if (latLng != null) {
                         utility.playSound(getBaseContext(),1);
                         anomalyDetectedList.add(new Anomaly(latLng.latitude,latLng.longitude));
@@ -396,11 +383,6 @@ public class AnomalyActivity extends AppCompatActivity implements
                     Log.d("DARSHANROHAN", "pothole z");
                     if (latLng != null) {
 
-                        //utility.playSound(getBaseContext(),1);
-                        //anomalyDetectedList.add(new Anomaly(latLng.latitude,latLng.longitude));
-                        //refreshMap();
-                        //drawMarkerWithCircle(latLng);
-
                         AlertDialog dialog = new AlertDialog.Builder(this)
                                 .setTitle("Accident detected")
                                 .setMessage("Do you really want to send emergency alert message?")
@@ -412,6 +394,7 @@ public class AnomalyActivity extends AppCompatActivity implements
                                 })
                                 .setPositiveButton(android.R.string.yes, null)
                                 .create();
+
                         dialog.setOnShowListener(new DialogInterface.OnShowListener() {
                             private static final int AUTO_DISMISS_MILLIS = 10000;
                             @Override
@@ -431,7 +414,7 @@ public class AnomalyActivity extends AppCompatActivity implements
                                     public void onFinish() {
                                         if (((AlertDialog) dialog).isShowing()) {
                                             utility.sendSMS(PreferenceManager.getDefaultSharedPreferences(getApplicationContext()).getString("number", ""),
-                                                    "Accident occurred. You are requested to help. Accident location lat: " + latLng.latitude + " N lon: " + latLng.longitude + " E");
+                                                    "Accident occurred. You are requested to help. Accident location lat: " + latLng.latitude + " N lon: " + latLng.longitude + " .");
                                             dialog.dismiss();
                                         }
                                     }
